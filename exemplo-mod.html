@@ -1,0 +1,458 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Agenda Studio Aurora</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: barra de topo fixa de navegação, uma coluna central de 960px com três telas (entrar, painel, agendar) trocadas pela hash. */
+:root {
+  --bg: #f3f6f7;
+  --surface: #ffffff;
+  --fg: #0f1b2d;
+  --muted: #3f4d5e;
+  --line: #d9e1e6;
+  --accent: #0b6b57;
+  --accent-fg: #ffffff;
+  --accent-soft: #ddf3ec;
+  --bar: #0f1b2d;
+  --bar-fg: #ffffff;
+  --bar-line: #4b5d75;
+  --pend-bg: #fff0d6;
+  --pend-fg: #7a4300;
+  --ok-bg: #ddf3e6;
+  --ok-fg: #0b5a30;
+  --off-bg: #e8ecf0;
+  --off-fg: #3f4d5e;
+  --err: #a11d1d;
+  --field: #8d99a7;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c141d;
+    --surface: #131f2c;
+    --fg: #eaf0f5;
+    --muted: #b3c0cd;
+    --line: #26384a;
+    --accent: #37c3a2;
+    --accent-fg: #06251d;
+    --accent-soft: #123a32;
+    --bar: #0a1119;
+    --bar-fg: #eaf0f5;
+    --bar-line: #35495e;
+    --pend-bg: #4a3512;
+    --pend-fg: #ffd9a0;
+    --ok-bg: #12402a;
+    --ok-fg: #a9ecc4;
+    --off-bg: #243344;
+    --off-fg: #b3c0cd;
+    --err: #ff9b9b;
+    --field: #5f7388;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c141d;
+  --surface: #131f2c;
+  --fg: #eaf0f5;
+  --muted: #b3c0cd;
+  --line: #26384a;
+  --accent: #37c3a2;
+  --accent-fg: #06251d;
+  --accent-soft: #123a32;
+  --bar: #0a1119;
+  --bar-fg: #eaf0f5;
+  --bar-line: #35495e;
+  --pend-bg: #4a3512;
+  --pend-fg: #ffd9a0;
+  --ok-bg: #12402a;
+  --ok-fg: #a9ecc4;
+  --off-bg: #243344;
+  --off-fg: #b3c0cd;
+  --err: #ff9b9b;
+  --field: #5f7388;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+h1, h2 { font-family: var(--font-display); margin: 0; line-height: 1.15; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: 30px; }
+p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 5;
+  background: var(--bar);
+  color: var(--bar-fg);
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bar);
+}
+.topbar-in {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.brand small { font-family: var(--font-body); font-weight: 500; font-size: 13px; opacity: 0.8; margin-left: 8px; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding-block: 24px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.notice {
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn.main { background: var(--accent); color: var(--accent-fg); }
+.btn.main:hover { filter: brightness(1.08); }
+.btn.line { background: var(--surface); border-color: var(--field); color: var(--fg); }
+.btn.line:hover { border-color: var(--accent); }
+.btn.bar { color: var(--bar-fg); border-color: var(--bar-line); }
+.btn.bar:hover { border-color: var(--bar-fg); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.center { display: flex; justify-content: center; padding-block: 24px; }
+.form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+label { font-weight: 600; font-size: 14px; }
+input, select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--field);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.hint { font-size: 14px; color: var(--muted); }
+.err { color: var(--err); font-weight: 600; font-size: 14px; }
+.okmsg { color: var(--ok-fg); background: var(--ok-bg); border-radius: 10px; padding: 10px 14px; font-weight: 600; font-size: 14px; }
+
+.head { display: flex; flex-direction: column; gap: 4px; }
+.head p { color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat span { font-size: 14px; color: var(--muted); }
+.stat strong { font-family: var(--font-display); font-size: 34px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.filters .field { flex: 1 1 180px; max-width: 280px; }
+
+.list { display: flex; flex-direction: column; gap: 12px; }
+.item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+}
+.when { min-width: 104px; }
+.when strong { display: block; font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.when span { font-size: 13px; color: var(--muted); }
+.who { flex: 1 1 200px; min-width: 0; }
+.who strong { display: block; font-size: 17px; overflow-wrap: anywhere; }
+.who span { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill { padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.pill.pendente { background: var(--pend-bg); color: var(--pend-fg); }
+.pill.confirmado { background: var(--ok-bg); color: var(--ok-fg); }
+.pill.cancelado { background: var(--off-bg); color: var(--off-fg); }
+.empty { text-align: center; color: var(--muted); padding: 28px 0; }
+.foot { display: flex; flex-wrap: wrap; gap: 10px; }
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">Studio Aurora<small>agenda</small></div>
+    <nav class="nav" aria-label="Navegação">
+      <a class="btn bar" href="#agendar" id="nav-agendar">Agendar como cliente</a>
+      <a class="btn bar" href="#painel" id="nav-painel">Painel do dono</a>
+      <button class="btn bar" type="button" id="nav-sair" hidden>Sair</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="notice">Demonstração com dados fictícios. Os agendamentos ficam salvos só neste navegador.</p>
+
+  <!-- ENTRAR -->
+  <section id="view-entrar" hidden>
+    <div class="center">
+      <form class="card form" id="form-login">
+        <div class="head">
+          <h1>Entrar no painel</h1>
+          <p>Acesso do dono do estabelecimento.</p>
+        </div>
+        <div class="field">
+          <label for="usuario">Usuário</label>
+          <input id="usuario" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn main" type="submit">Entrar</button>
+        <p class="err" id="login-erro" role="alert" hidden>Usuário ou senha incorretos.</p>
+        <p class="hint">Na demonstração: usuário <strong>dono</strong>, senha <strong>1234</strong>.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- PAINEL -->
+  <section id="view-painel" hidden>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="head">
+        <h1>Quem agendou o quê</h1>
+        <p>Todos os pedidos de horário recebidos, com cliente, serviço, dia e hora.</p>
+      </div>
+
+      <div class="stats">
+        <div class="card stat"><span>Horários hoje</span><strong id="n-hoje">0</strong></div>
+        <div class="card stat"><span>Aguardando sua resposta</span><strong id="n-pend">0</strong></div>
+        <div class="card stat"><span>Confirmados</span><strong id="n-conf">0</strong></div>
+      </div>
+
+      <div class="filters">
+        <div class="field">
+          <label for="f-dia">Período</label>
+          <select id="f-dia">
+            <option value="hoje">Hoje</option>
+            <option value="proximos" selected>Hoje e próximos dias</option>
+            <option value="todos">Todos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-status">Situação</label>
+          <select id="f-status">
+            <option value="todos">Todas</option>
+            <option value="pendente">Aguardando</option>
+            <option value="confirmado">Confirmados</option>
+            <option value="cancelado">Cancelados</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="list" id="lista" aria-live="polite"></div>
+
+      <div class="foot">
+        <button class="btn line" type="button" id="btn-reset">Restaurar dados de exemplo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENDAR -->
+  <section id="view-agendar" hidden>
+    <div class="center">
+      <form class="card form" id="form-agendar">
+        <div class="head">
+          <h1>Agendar horário</h1>
+          <p>Escolha o serviço, o dia e a hora.</p>
+        </div>
+        <div class="field">
+          <label for="nome">Seu nome</label>
+          <input id="nome" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="tel">Telefone (WhatsApp)</label>
+          <input id="tel" type="tel" autocomplete="tel" placeholder="(14) 99999-9999" required>
+        </div>
+        <div class="field">
+          <label for="servico">Serviço</label>
+          <select id="servico" required></select>
+        </div>
+        <div class="field">
+          <label for="data">Dia</label>
+          <input id="data" type="date" required>
+        </div>
+        <div class="field">
+          <label for="hora">Horário</label>
+          <input id="hora" type="time" step="1800" required>
+        </div>
+        <button class="btn main" type="submit">Pedir agendamento</button>
+        <p class="okmsg" id="ok" role="status" hidden>Pedido enviado. O estabelecimento vai confirmar o seu horário.</p>
+        <p class="hint">Depois de enviar, entre como dono para ver o pedido no painel.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var CONFIG = {
+    usuario: 'dono',
+    senha: '1234',
+    servicos: ['Corte', 'Barba', 'Corte + barba', 'Escova', 'Manicure', 'Coloração']
+  };
+  var KEY = 'agenda-aurora';
+  var logado = false;
+
+  function iso(off) {
+    var d = new Date();
+    d.setDate(d.getDate() + (off || 0));
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function exemplo() {
+    return [
+      { id: 1, nome: 'Juliana Prado', tel: '(14) 99999-0001', servico: 'Coloração', data: iso(0), hora: '09:00', status: 'confirmado' },
+      { id: 2, nome: 'Rafael Lima', tel: '(14) 99999-0002', servico: 'Corte + barba', data: iso(0), hora: '10:30', status: 'pendente' },
+      { id: 3, nome: 'Beatriz Souza', tel: '(14) 99999-0003', servico: 'Manicure', data: iso(0), hora: '13:00', status: 'confirmado' },
+      { id: 4, nome: 'Diego Martins', tel: '(14) 99999-0004', servico: 'Corte', data: iso(1), hora: '15:30', status: 'pendente' },
+      { id: 5, nome: 'Carla Menezes', tel: '(14) 99999-0005', servico: 'Escova', data: iso(2), hora: '17:00', status: 'pendente' }
+    ];
+  }
+  var dados = null;
+  try { dados = JSON.parse(localStorage.getItem(KEY)); } catch (e) { dados = null; }
+  if (!Array.isArray(dados)) dados = exemplo();
+  function salvar() { try { localStorage.setItem(KEY, JSON.stringify(dados)); } catch (e) {} }
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, attrs, kids) {
+    var e = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'class') e.className = attrs[k];
+      else if (k === 'text') e.textContent = attrs[k];
+      else if (k.indexOf('on') === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { e.appendChild(c); });
+    return e;
+  }
+  function fmt(d) { var p = d.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+
+  var rotulo = { pendente: 'Aguardando', confirmado: 'Confirmado', cancelado: 'Cancelado' };
+
+  function renderPainel() {
+    var hoje = iso(0);
+    $('n-hoje').textContent = dados.filter(function (a) { return a.data === hoje && a.status !== 'cancelado'; }).length;
+    $('n-pend').textContent = dados.filter(function (a) { return a.status === 'pendente'; }).length;
+    $('n-conf').textContent = dados.filter(function (a) { return a.status === 'confirmado'; }).length;
+
+    var fd = $('f-dia').value, fs = $('f-status').value;
+    var lista = dados
+      .filter(function (a) { return fd === 'todos' || (fd === 'hoje' ? a.data === hoje : a.data >= hoje); })
+      .filter(function (a) { return fs === 'todos' || a.status === fs; })
+      .sort(function (a, b) { return (a.data + a.hora).localeCompare(b.data + b.hora); });
+
+    var box = $('lista');
+    box.textContent = '';
+    if (!lista.length) { box.appendChild(el('p', { class: 'empty', text: 'Nenhum agendamento neste filtro.' })); return; }
+
+    lista.forEach(function (a) {
+      var acoes = el('div', { class: 'actions' }, [el('span', { class: 'pill ' + a.status, text: rotulo[a.status] })]);
+      if (a.status === 'pendente') {
+        acoes.appendChild(el('button', { class: 'btn main', type: 'button', text: 'Confirmar', onclick: function () { a.status = 'confirmado'; salvar(); renderPainel(); } }));
+      }
+      if (a.status !== 'cancelado') {
+        acoes.appendChild(el('button', { class: 'btn line', type: 'button', text: 'Cancelar', onclick: function () { a.status = 'cancelado'; salvar(); renderPainel(); } }));
+      }
+      var dig = a.tel.replace(/\D/g, '');
+      if (dig.length >= 10) {
+        acoes.appendChild(el('a', { class: 'btn line', href: 'https://wa.me/55' + dig, target: '_blank', rel: 'noopener', text: 'WhatsApp' }));
+      }
+      box.appendChild(el('article', { class: 'item' }, [
+        el('div', { class: 'when' }, [el('strong', { text: a.hora }), el('span', { text: fmt(a.data) + (a.data === hoje ? ' (hoje)' : '') })]),
+        el('div', { class: 'who' }, [el('strong', { text: a.nome }), el('span', { text: a.servico + ' · ' + a.tel })]),
+        acoes
+      ]));
+    });
+  }
+
+  var views = ['entrar', 'painel', 'agendar'];
+  function route() {
+    var h = location.hash.replace('#', '');
+    if (views.indexOf(h) < 0) h = 'entrar';
+    if (h === 'painel' && !logado) h = 'entrar';
+    if (h === 'entrar' && logado) h = 'painel';
+    views.forEach(function (v) { $('view-' + v).hidden = v !== h; });
+    $('nav-sair').hidden = !logado;
+    $('nav-painel').hidden = h === 'painel';
+    $('nav-agendar').hidden = h === 'agendar';
+    if (h === 'painel') renderPainel();
+    if (h === 'agendar') $('ok').hidden = true;
+  }
+
+  $('form-login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if ($('usuario').value.trim() === CONFIG.usuario && $('senha').value === CONFIG.senha) {
+      logado = true;
+      $('login-erro').hidden = true;
+      location.hash = 'painel';
+      route();
+    } else {
+      $('login-erro').hidden = false;
+    }
+  });
+  $('nav-sair').addEventListener('click', function () { logado = false; location.hash = 'entrar'; route(); });
+  $('f-dia').addEventListener('change', renderPainel);
+  $('f-status').addEventListener('change', renderPainel);
+  $('btn-reset').addEventListener('click', function () { dados = exemplo(); salvar(); renderPainel(); });
+
+  CONFIG.servicos.forEach(function (s) { $('servico').appendChild(el('option', { value: s, text: s })); });
+  $('data').min = iso(0);
+  $('form-agendar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var id = dados.reduce(function (m, a) { return Math.max(m, a.id); }, 0) + 1;
+    dados.push({ id: id, nome: $('nome').value.trim(), tel: $('tel').value.trim(), servico: $('servico').value, data: $('data').value, hora: $('hora').value, status: 'pendente' });
+    salvar();
+    this.reset();
+    $('ok').hidden = false;
+  });
+
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+
+</body></html>
